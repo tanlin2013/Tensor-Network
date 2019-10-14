@@ -69,17 +69,17 @@ if __name__=='__main__':
     var=TNpy.measurement.variance(model.M,Gs)
 
     dE=stats['dE']; sweep=stats['sweep']; t=stats['AvgProcT']
-    print "\n","="*140,"\n"
+    print("\n","="*140,"\n")
     header=["E/N","dE","variance","sum_i <Sz_i>","|sum_i <(-1)**i*Sz_i>|","sweep","AvgProcT(mins/sweep)"]
     outs=[E,dE,var,np.sum(Sz_i),abs(np.sum(stag_Sz_i)),sweep,t]
     for line in [header,outs]:
         print('{:>20} {:>20} {:>20} {:>18} {:>26} {:>8} {:>22}'.format(*line))
 
-    print "\n","-"*140,"\n"
+    print("\n","-"*140,"\n")
     header=["N","g","ma","mu","lambda","S_target","chi","tolerance"]
     outs=[N,g,ma,mu,lamda,S_target,chi,tolerance]
     for line in [header,outs]:
         print('{:>6} {:>16} {:>16} {:>10} {:>10} {:>12} {:>10} {:>12}'.format(*line))
-    print "\n","="*140
+    print("\n","="*140)
 
     

@@ -47,14 +47,14 @@ class MPS:
         if self.whichMPS == 'i':
             # Create the iMPS
             Gs = [None]*2; SVMs = [None]*2
-            for site in xrange(2):
+            for site in range(2):
                 Gs[site] = np.random.rand(self.chi,self.d,self.chi)
                 SVMs[site] = np.diagflat(np.random.rand(self.chi))
             return Gs, SVMs    
         elif self.whichMPS == 'f':
             # Create the fMPS
             Gs = [None]*self.N; N_parity = self.N%2
-            for site in xrange(self.N):        
+            for site in range(self.N):        
                 if N_parity == 0:
                     if site == 0 or site == self.N-1:
                         Gs[site] = np.random.rand(self.d,min(self.d,self.chi))
@@ -130,17 +130,17 @@ def normalize_fmps(Gs, order, init = False):
     """
     N = len(Gs); d = Gs[0].shape[0]
     if order == 'L':
-        for site in xrange(N-1):
+        for site in range(N-1):
             Gs = _normalize_fmps(Gs, order, site, init)
         return Gs
     elif order == 'R':
-        for site in xrange(N-1,0,-1):
+        for site in range(N-1,0,-1):
             Gs = _normalize_fmps(Gs, order, site, init)
         return Gs
     elif order == 'mix':
         Gs_order = get_fmps_order(Gs)
         if Gs_order == 'R':
-            for site in xrange(N/2-1):
+            for site in range(N/2-1):
                 Gs = _normalize_fmps(Gs, 'L', site)
             theta = np.ndarray.reshape(Gs[N/2-1],(d*Gs[N/2-1].shape[0],Gs[N/2-1].shape[2]))
             X, S, Y = np.linalg.svd(theta,full_matrices=False)
@@ -148,7 +148,7 @@ def normalize_fmps(Gs, order, init = False):
             Gs[N/2] = np.tensordot(Y,Gs[N/2],axes=(1,0))
             SVM = np.diagflat(S)
         elif Gs_order == 'L':
-            for site in xrange(N-1,N/2,-1):
+            for site in range(N-1,N/2,-1):
                 Gs = _normalize_fmps(Gs, 'R', site)
             theta = np.ndarray.reshape(Gs[N/2],(Gs[N/2].shape[0],d*Gs[N/2].shape[2]))
             X, S, Y = np.linalg.svd(theta,full_matrices=False)
@@ -165,7 +165,7 @@ def fmps_norm(Gs):
     N = len(Gs); order = get_fmps_order(Gs)
     
     if order == 'R':
-        for site in xrange(N):
+        for site in range(N):
             if site == 0:
                 norm = np.tensordot(Gs[site],np.conjugate(Gs[site]),axes=(0,0))
             elif site == N-1:
@@ -173,7 +173,7 @@ def fmps_norm(Gs):
             else:
                 norm = np.tensordot(np.tensordot(norm,Gs[site],axes=(0,0)),np.conjugate(Gs[site]),axes=([0,1],[0,1]))
     elif order == 'L':
-        for site in xrange(N-1,-1,-1):
+        for site in range(N-1,-1,-1):
             if site == 0:
                 norm = np.tensordot(np.tensordot(norm,Gs[site],axes=(0,1)),np.conjugate(Gs[site]),axes=([0,1],[1,0]))
             elif site == N-1:
@@ -204,7 +204,7 @@ def transfer_operator(G, M):
 def increase_bond_dim(Gs, old_chi, new_chi):
     N = len(Gs); d=Gs[0].shape[0]
     new_Gs = [None]*N
-    for site in xrange(N):
+    for site in range(N):
         if site == 0 or site == N-1:
             I = np.eye(min(d,old_chi),min(d,new_chi))
             new_Gs[site] = np.tensordot(Gs[site],I,axes=(1,0))
@@ -222,7 +222,7 @@ def imps_to_fmps(Gs, SVMs, N):
     # return right-normalized fmps
     d = Gs[0].shape[1]; chi = Gs[0].shape[0]    
     new_Gs = [None]*N
-    for site in xrange(N):
+    for site in range(N):
         G = np.tensordot(Gs[site%2],SVMs[site%2],axes=(2,0))
         if site == 0 or site == N-1:
             IL = np.eye(chi,1)
@@ -243,7 +243,7 @@ def lengthen_fmps(Gs, new_N):
     old_N = len(Gs); new_Gs = np.copy(Gs).tolist()
     G = [Gs[old_N/2-1], Gs[old_N/2]]
     k = 0
-    for half_length in xrange(old_N/2,new_N-old_N/2):
+    for half_length in range(old_N/2,new_N-old_N/2):
         parity = (k+1)%2
         new_Gs.insert(half_length, G[parity])
         k += 1

@@ -1,1 +1,1 @@
-import fit, io
+from TNpy.data import fit, io

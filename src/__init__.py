@@ -1,1 +1,1 @@
-import tnstate, algorithm, operators, measurement, linalg, data
+from TNpy import tnstate, algorithm, operators, measurement, linalg, data

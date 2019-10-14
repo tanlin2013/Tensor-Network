@@ -31,7 +31,7 @@ def eigshmv(Afunc, v0, k=1, sigma=None, which='SA',
 
     class PP(Primme.PrimmeParams):
         def __init__(self):
-            Primme.PrimmeParams.__init__(self)
+            super(PP, self).__init__()
         def matvec(self, X):
             return Afunc(X)
         def prevec(self, X):
@@ -165,7 +165,7 @@ def inverse_SVM(A):
     """
     A = np.diag(A)
     A_inv = np.zeros(len(A))
-    for i in xrange(len(A)):        
+    for i in range(len(A)):        
         if A[i] == 0:
             A_inv[i] = 0.0
         else:

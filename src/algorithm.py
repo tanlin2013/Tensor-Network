@@ -12,8 +12,8 @@ import time
 import warnings
 import numpy as np
 from scipy.linalg import expm
-import linalg
-import tnstate as tn
+from . import linalg
+from . import tnstate as tn
 
 class iDMRG:
     def __init__(self, MPO, Gs, SVMs, N, d, chi):
@@ -65,7 +65,7 @@ class iDMRG:
     
     def warm_up_optimize(self, svd_method='numpy'):
         L, R = self._initialize_Env()
-        for length in xrange(self.N/2):
+        for length in range(self.N/2):
             A = length%2
             B = (length+1)%2
             # optimize 2 new-added sites in the center
@@ -74,7 +74,7 @@ class iDMRG:
             E = evals[0]; theta = evec[:,0]
             #E,theta=linalg.eigshmv(*self._effHpsi(L,R,A,B))
             E /= 2*(length+1)
-            print "length%d," % length,"E/N= %.12f" % E
+            print("length%d," % length,"E/N= %.12f" % E)
             # SVD and truncation
             theta = np.ndarray.reshape(theta, (self.chi*self.d, self.chi*self.d))
             X, S, Y = linalg.svd(theta, self.chi, svd_method)                 
@@ -120,7 +120,7 @@ class iTEBD:
         return U
     
     def time_evolution(self, svd_method='numpy'):
-        for step in xrange(self.maxstep):
+        for step in range(self.maxstep):
             A = step%2
             B = (step+1)%2
             #contract to theta
@@ -164,13 +164,13 @@ class fDMRG:
         
     def _initialize_Env(self):
         L=[None]*(self.N-1); R=[None]*(self.N-1)
-        for site in xrange(self.N-1):
+        for site in range(self.N-1):
             if site == 0:
                 EnvL = tn.transfer_operator(self.Gs[site], self.MPO(site))             
             else:    
                 EnvL = self._update_EnvL(EnvL, site)            
             L[site] = EnvL                       
-        for site in xrange(self.N-1,0,-1):
+        for site in range(self.N-1,0,-1):
             if site == self.N-1:
                 EnvR = tn.transfer_operator(self.Gs[site], self.MPO(site))
             else:
@@ -200,13 +200,13 @@ class fDMRG:
 
     def _initialize_projEnv(self):
         projL=[None]*(self.N-1); projR=[None]*(self.N-1)
-        for site in xrange(self.N-1):           
+        for site in range(self.N-1):           
             if site == 0:               
                 projEnvL = np.tensordot(self.Gs[site],self.projGs[site],axes=(0,0))          
             else:
                 projEnvL = np.tensordot(np.tensordot(projEnvL,self.Gs[site],axes=(0,0)),self.projGs[site],axes=([0,1],[0,1]))            
             projL[site] = projEnvL                       
-        for site in xrange(self.N-1,0,-1):
+        for site in range(self.N-1,0,-1):
             if site == self.N-1:
                 projEnvR = np.tensordot(self.Gs[site],self.projGs[site],axes=(0,0))   
             else:
@@ -292,10 +292,10 @@ class fDMRG:
         if self.projE is not None:
             projL, projR = self._initialize_projEnv()
         E0 = 0.0; t0 = time.clock(); alpha = self.tolerance
-        for sweep in xrange(1,self.maxsweep):
+        for sweep in range(1,self.maxsweep):
             #--------------------------------------------------------------------------------------------
             # Right Sweep         
-            for site in xrange(self.N-1):
+            for site in range(self.N-1):
                 # construct effH & diagonalize it; psi is an initial guess of eigenvector    
                 if self.projE is not None:
                     E, theta = linalg.eigshmv(*self._effprojHpsi(L,R,projL,projR,site),tol=0.1*self.tolerance,method=primme_method)
@@ -303,7 +303,7 @@ class fDMRG:
                     E, theta = linalg.eigshmv(*self._effHpsi(L,R,site),tol=0.1*self.tolerance,method=primme_method) 
                 E /= self.N
                 if show_stats:
-                    print "site%d," % site,"E/N= %.12f" % E
+                    print("site%d," % site,"E/N= %.12f" % E)
                 if modified_DM:
                     theta += self._modified_density_matrix(alpha, L, R ,site)
                 # SVD and truncation
@@ -334,12 +334,12 @@ class fDMRG:
             dE = E0-E; E0 = E
             if modified_DM and sweep == 1: alpha = 0.1*self.tolerance
             if show_stats:
-                print "sweep %.1f," % (sweep-0.5),"E/N= %.12f," % E,"dE= %.4e" % dE                               
+                print("sweep %.1f," % (sweep-0.5),"E/N= %.12f," % E,"dE= %.4e" % dE)                               
             if self._convergence(sweep-0.5,E,dE):
                 break                       
             #--------------------------------------------------------------------------------------------               
             # Left Sweep
-            for site in xrange(self.N-1,0,-1):
+            for site in range(self.N-1,0,-1):
                 # construct H & diagonalize it; psi is an initial guess of eigenvector                  
                 if self.projE is not None:
                     E, theta = linalg.eigshmv(*self._effprojHpsi(L,R,projL,projR,site),tol=0.1*self.tolerance,method=primme_method)
@@ -347,7 +347,7 @@ class fDMRG:
                     E, theta = linalg.eigshmv(*self._effHpsi(L,R,site),tol=0.1*self.tolerance,method=primme_method) 
                 E /= self.N
                 if show_stats:
-                    print "site%d," % site,"E/N= %.12f" % E
+                    print("site%d," % site,"E/N= %.12f" % E)
                 if modified_DM:
                     theta += self._modified_density_matrix(alpha, L, R ,site)
                 # SVD and truncation
@@ -378,7 +378,7 @@ class fDMRG:
             dE = E0-E; E0 = E
             if modified_DM and sweep == 1: modified_DM = False
             if show_stats:
-                print "sweep %d," % sweep,"E/N= %.12f," % E,"dE= %.4e" % dE                   
+                print("sweep %d," % sweep,"E/N= %.12f," % E,"dE= %.4e" % dE)                   
             if self._convergence(sweep,E,dE):
                 break
             #--------------------------------------------------------------------------------------------
@@ -419,8 +419,8 @@ class fTEBD:
         return U
         
     def time_evolution(self):
-        for step in xrange(self.maxstep):
-            for site in xrange(N/2+1):
+        for step in range(self.maxstep):
+            for site in range(N/2+1):
                 # contract theta and U
                 if site == 0:
                     theta = np.tensordot(np.tensordot())
@@ -443,7 +443,7 @@ class fTEBD:
                 
                 else:
                 
-            for site in xrange(1,N/2+2):
+            for site in range(1,N/2+2):
                 # contract theta and U
                 
             

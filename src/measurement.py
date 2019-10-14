@@ -5,8 +5,8 @@ This file contains the physical quantities to be measured.
 import copy,warnings
 import numpy as np
 from scipy.linalg import expm
-import operators,linalg
-import tnstate as tn 
+from TNpy import operators,linalg
+from TNpy import tnstate as tn 
 
 class _update_Env:
     def __init__(self, MPO, Gs, N):
@@ -61,7 +61,7 @@ class _update_Env:
 def expectation_value(MPO, Gs):
     N = len(Gs); h = _update_Env(MPO,Gs,N); order = tn.get_fmps_order(Gs)
     if order == 'L':
-        for site in xrange(N):
+        for site in range(N):
             if site == 0:
                 M = MPO(site)
                 EnvL = tn.transfer_operator(Gs[site],M)
@@ -69,7 +69,7 @@ def expectation_value(MPO, Gs):
                 EnvL = h._update_EnvL(EnvL,site)
         expval = EnvL.item()
     elif order == 'R':
-        for site in xrange(N-1,-1,-1):
+        for site in range(N-1,-1,-1):
             if site == N-1:
                 M = MPO(site)
                 EnvR = tn.transfer_operator(Gs[site],M)
@@ -81,7 +81,7 @@ def expectation_value(MPO, Gs):
 def variance(MPO, Gs):
     N = len(Gs); h = _update_Env(MPO,Gs,N); order = tn.get_fmps_order(Gs)
     if order == 'L':
-        for site in xrange(N):
+        for site in range(N):
             if site == 0:
                 M = MPO(site)
                 EnvL = tn.transfer_operator(Gs[site],M)
@@ -92,7 +92,7 @@ def variance(MPO, Gs):
                 EnvL2 = h._update_EnvL2(EnvL2,site)
         var = EnvL2.item()-EnvL.item()**2    
     elif order == 'R':
-        for site in xrange(N-1,-1,-1):
+        for site in range(N-1,-1,-1):
             if site == N-1:
                 M = MPO(site)
                 EnvR = tn.transfer_operator(Gs[site],M)
@@ -117,11 +117,11 @@ def bipartite_entanglement_entropy(Gs):
     
     gs = np.copy(Gs); entrolist=[None]*(N-1)
     if order == 'R':
-        for site in xrange(N-1):
+        for site in range(N-1):
             gs, S = tn._normalize_fmps(gs,'L',site,return_S=True)
             entrolist[site] = von_Neumann_entropy(S)
     elif order == 'L':
-        for site in xrange(N-1,0,-1):
+        for site in range(N-1,0,-1):
             gs, S = tn._normalize_fmps(gs,'R',site,return_S=True)
             entrolist[N-1-site] = von_Neumann_entropy(S)
     del gs
@@ -147,12 +147,12 @@ def Sz_site(Gs, staggering=False):
         return Sz_site.item() 
         
     if order == 'R': # state is right-normalized
-        for site in xrange(N):
+        for site in range(N):
             state[site] = update_Sz(site)
             if site < N-1:
                 Gs = tn._normalize_fmps(Gs,'L',site)
     elif order == 'L': # state is left-normalized
-        for site in xrange(N-1,-1,-1):
+        for site in range(N-1,-1,-1):
             state[site] = update_Sz(site)
             if site > 0:
                 Gs = tn._normalize_fmps(Gs,'R',site)
@@ -183,15 +183,15 @@ class Sz_corr:
         if self.order == 'R':
             IL = np.identity(self.Gs[self.discard_site].shape[0],dtype=float)
             IR = np.identity(self.Gs[n].shape[2],dtype=float)
-            for site in xrange(self.discard_site,m):
+            for site in range(self.discard_site,m):
                 IL = self._update_IL(IL,site)
         elif self.order == 'L':
             IL = np.identity(self.Gs[m].shape[0],dtype=float)
             IR = np.identity(self.Gs[self.N-1-self.discard_site].shape[2],dtype=float)
-            for site in xrange(self.N-1-self.discard_site,n,-1):
+            for site in range(self.N-1-self.discard_site,n,-1):
                 IR = self._update_IR(IR,site)
                 
-        for site in xrange(m,n+1):
+        for site in range(m,n+1):
             if site == m:
                 corr = np.tensordot(np.tensordot(np.tensordot(IL,
                        self.Gs[site],axes=(0,0)),self.stag**site*Sz,axes=(1,0)),
@@ -209,11 +209,11 @@ class Sz_corr:
         ls = np.arange(1,self.N-2*self.discard_site); corrs = []
         for l in ls:
             corr = 0.0; Nconf = 0.0
-            for m in xrange(self.discard_site,self.N-self.discard_site-l):
+            for m in range(self.discard_site,self.N-self.discard_site-l):
                 tmp = self._connected_part(m,m+l)
                 corr += tmp
                 Nconf += 1
-                print "For length {}, passing site {}, corr = {}".format(l,m,tmp)
+                print("For length {}, passing site {}, corr = {}".format(l,m,tmp))
             corr *= 1./Nconf
             corrs.append(np.real_if_close(corr))
         return ls, np.array(corrs)
@@ -241,15 +241,15 @@ class Spm_corr:
         if self.order == 'R':
             IL = np.identity(self.Gs[self.discard_site].shape[0],dtype=float)
             IR = np.identity(self.Gs[n].shape[2],dtype=float)
-            for site in xrange(self.discard_site,m):
+            for site in range(self.discard_site,m):
                 IL = self._update_IL(IL,site)
         elif self.order == 'L':
             IL = np.identity(self.Gs[m].shape[0],dtype=float)
             IR = np.identity(self.Gs[self.N-1-self.discard_site].shape[2],dtype=float)
-            for site in xrange(self.N-1-self.discard_site,n,-1):
+            for site in range(self.N-1-self.discard_site,n,-1):
                 IR = self._update_IR(IR,site)
                 
-        for site in xrange(m,n+1):
+        for site in range(m,n+1):
             if site == m:
                 corr = np.tensordot(np.tensordot(np.tensordot(IL,
                        self.Gs[site],axes=(0,0)),Sp,axes=(1,0)),
@@ -267,11 +267,11 @@ class Spm_corr:
         ls = np.arange(1,self.N-2*self.discard_site); corrs = []
         for l in ls:
             corr = 0.0; Nconf = 0.0
-            for m in xrange(self.discard_site,self.N-self.discard_site-l):
+            for m in range(self.discard_site,self.N-self.discard_site-l):
                 tmp = self._connected_part(m,m+l)
                 corr += tmp
                 Nconf += 1
-                print "For length {}, passing site {}, corr = {}".format(l,m,tmp)
+                print("For length {}, passing site {}, corr = {}".format(l,m,tmp))
             corr *= 1./Nconf
             corrs.append(np.real_if_close(corr))
         return ls, np.array(corrs)
@@ -286,14 +286,14 @@ class string_corr:
         if self.discard_site < 2: raise ValueError('Must discard at least two sites at each boundary.')
         self.Ilist = {}
         if self.order == 'R':
-            for site in xrange(0,self.N-self.discard_site+self.N_conf/2):
+            for site in range(0,self.N-self.discard_site+self.N_conf/2):
                 if site == 0:
                     I = np.tensordot(self.Gs[site],np.conjugate(self.Gs[site]),axes=(0,0))
                 else:
                     I = self._update_IL(I,site)
                 self.Ilist["{}".format(site)] = np.copy(I)
         elif self.order == 'L':
-            for site in xrange(self.N-1,self.discard_site-self.N_conf/2,-1):
+            for site in range(self.N-1,self.discard_site-self.N_conf/2,-1):
                 if site == self.N-1:
                     I = np.tensordot(self.Gs[site],np.conjugate(self.Gs[site]),axes=(0,0))
                 else:
@@ -320,7 +320,7 @@ class string_corr:
             IL = np.identity(self.Gs[m].shape[0],dtype=float)
             IR = self.Ilist["{}".format(n+1)]
             
-        for site in xrange(m,n+1):
+        for site in range(m,n+1):
             if site == m:
                 corr = np.tensordot(np.tensordot(np.tensordot(IL,
                        self.Gs[site],axes=(0,0)),Sp,axes=(1,0)),
@@ -345,7 +345,7 @@ class string_corr:
                 tmp = self._connected_part(m,m+l)
                 corr += tmp
                 Nconf += 1
-                print "For length {}, passing site {}, corr = {}".format(l,m,tmp)
+                print("For length {}, passing site {}, corr = {}".format(l,m,tmp))
             corr *= 1./Nconf
             corrs.append(np.real_if_close(corr))
         return ls, np.array(corrs)
@@ -361,7 +361,7 @@ class string_corr:
                 tmp = self._connected_part(m,m+l)
                 corr += tmp
                 Nconf += 1
-                print "For length {}, passing site {}, corr = {}".format(l,m,tmp)
+                print("For length {}, passing site {}, corr = {}".format(l,m,tmp))
             corr *= 1./Nconf
             corrs.append(np.real_if_close(corr))
         return ls, np.array(corrs)
@@ -375,14 +375,14 @@ class vertex_corr:
         if self.discard_site < 2: raise ValueError('Must discard at least two sites at each boundary.')
         self.Ilist = []
         if self.order == 'R':
-            for site in xrange(self.N-1-self.discard_site):
+            for site in range(self.N-1-self.discard_site):
                 if site == 0:
                     I = np.tensordot(self.Gs[site],np.conjugate(self.Gs[site]),axes=(0,0))
                 else:
                     I = self._update_IL(I,site)
                 self.Ilist.append(I)
         elif self.order == 'L':
-            for site in xrange(self.N-1,self.discard_site,-1):
+            for site in range(self.N-1,self.discard_site,-1):
                 if site == self.N-1:
                     I = np.tensordot(self.Gs[site],np.conjugate(self.Gs[site]),axes=(0,0))
                 else:
@@ -412,7 +412,7 @@ class vertex_corr:
             IL = np.identity(self.Gs[m].shape[0],dtype=float)
             IR = self.Ilist[self.N-2-n]
         
-        for site in xrange(m,n+1,2):
+        for site in range(m,n+1,2):
             if site == m:
                 corr = np.tensordot(np.tensordot(np.tensordot(np.tensordot(np.tensordot(
                         IL,self.Gs[m],axes=(0,0)),np.conjugate(self.Gs[m]),axes=(0,0)),
@@ -437,7 +437,7 @@ class vertex_corr:
                 tmp = self._connected_part(m,m+l)
                 corr += tmp
                 Nconf += 1
-                print "For length {}, passing site {}, corr = {}".format(l,m,tmp)
+                print("For length {}, passing site {}, corr = {}".format(l,m,tmp))
             corr *= 1./Nconf
             corrs.append(np.real_if_close(corr))
         return ls, np.array(corrs)        
@@ -483,7 +483,7 @@ class BKT_corr:
         if m < self.N/2-2 and n < self.N/2+2:
             IL = np.identity(self.Gs[m].shape[0],dtype=float)
             IR = np.identity(self.Gs[self.N/2+1].shape[2],dtype=float)
-            for site in xrange(self.N/2+1,n+1,-2):
+            for site in range(self.N/2+1,n+1,-2):
                 IR = self._update_IR(IR, site)      
         elif m <= self.N/2-2 and n >= self.N/2:
             IL = np.identity(self.Gs[m].shape[0],dtype=float)
@@ -491,12 +491,12 @@ class BKT_corr:
         elif m >= self.N/2-2 and n >= self.N/2+2:
             IL = np.identity(self.Gs[self.N/2-1].shape[2],dtype=float)
             IR = np.identity(self.Gs[n+1].shape[2],dtype=float)
-            for site in xrange(self.N/2-2,m,2):
+            for site in range(self.N/2-2,m,2):
                 IL = self._update_IL(IL, site)
         else:
             raise ValueError('Indices m and n out of range.')
 
-        for site in xrange(m,n+1,2):
+        for site in range(m,n+1,2):
             if site == m:
                 corr = np.tensordot(np.tensordot(np.tensordot(np.tensordot(np.tensordot(
                         IL,self.Gs[m],axes=(0,0)),np.conjugate(self.Gs[m]),axes=(0,0)),
@@ -522,7 +522,7 @@ class BKT_corr:
         ls = np.arange(2,self.N-2*self.discard_site,2); corrs = []
         for l in ls:
             corr = 0.0; Nconf = 0.0
-            for m in xrange(self.discard_site,self.N-self.discard_site-l,2):
+            for m in range(self.discard_site,self.N-self.discard_site-l,2):
                 corr += self._connected_part(m,m+l)
                 Nconf += 1
                 print "For length {}, passing site {}".format(l,m)
@@ -570,11 +570,11 @@ def fermion_momentum(Gs):
     
     p = 0.0
     if order == 'R':
-        for site in xrange(N-2):
+        for site in range(N-2):
             p += update_p(site)
             Gs = tn._normalize_fmps(Gs,'L',site)          
     elif order == 'L':
-        for site in xrange(N-1,1,-1):
+        for site in range(N-1,1,-1):
             p += update_p(site-2)
             Gs = tn._normalize_fmps(Gs,'R',site)
     return p
@@ -590,7 +590,7 @@ class TEBD_corr:
         order = tn.get_fmps_order(self.Gs)
         if order == 'R': self.Gs = tn.normalize_fmps(self.Gs, 'L')
         self.SVMs = [None]*(self.N-1)
-        for site in xrange(self.N-1,0,-1):
+        for site in range(self.N-1,0,-1):
             self.Gs, S = tn._normalize_fmps(self.Gs,'R',site,return_S=True)
             self.SVMs[site-1] = S
         self.Gs0 = copy.copy(Gs)
@@ -613,7 +613,7 @@ class TEBD_corr:
     
     def time_evolution(self, m, n, use_config=True, svd_method='numpy'):
         self.Gs = copy.copy(self.Gs0)
-        for step in xrange(self.maxstep):
+        for step in range(self.maxstep):
             k = n-2*step
             if use_config and n-m > 2 and k-m > 2:
                 key = self.config_ID.index('point_{}_{}-layer_{}'.format(m,n-2,2*step+1))       
@@ -621,7 +621,7 @@ class TEBD_corr:
                 self.SVMs[k] = self.SVMs_config_dict[key]
             else:
                 k = m
-            for site in xrange(k,n+1,2):
+            for site in range(k,n+1,2):
                 # contract MPS and U into theta
                 theta_p = np.tensordot(np.tensordot(self.Gs[site],self._gate(site),axes=(1,0)),self.Gs[site+1],axes=([1,3],[0,1]))
                 theta = np.tensordot(np.diagflat(self.SVMs[site-1]),theta_p,axes=(1,0))
@@ -643,7 +643,7 @@ class TEBD_corr:
                 self.SVMs[k] = self.SVMs_config_dict[key]
             else:
                 k = m+1
-            for site in xrange(k,n,2):
+            for site in range(k,n,2):
                 # contract MPS and U into theta
                 theta_p = np.tensordot(np.tensordot(self.Gs[site],self._gate(site),axes=(1,0)),self.Gs[site+1],axes=([1,3],[0,1]))
                 theta = np.tensordot(np.diagflat(self.SVMs[site-1]),theta_p,axes=(1,0))
@@ -673,7 +673,7 @@ class TEBD_corr:
         return
         
     def exp_value(self):
-        for site in xrange(self.N):
+        for site in range(self.N):
             if site == 0:
                 corr = np.tensordot(self.Gs0[site],self.Gs[site],axes=(0,0))
             elif site == self.N-1:
@@ -694,7 +694,7 @@ class TEBD_corr:
                 corr = np.nan
                 warnings.simplefilter("always")        
                 warnings.warn("ValueWarning: Encounter NaN in SVD, skip.")
-            print "For length {}, passing site {}, corr = {}".format(l,m,corr)
+            print("For length {}, passing site {}, corr = {}".format(l,m,corr))
             corrs.append(np.real_if_close(corr))
         return ls, np.array(corrs)
     
@@ -712,7 +712,7 @@ class TEBD_corr:
                     warnings.simplefilter("always")        
                     warnings.warn("ValueWarning: Encounter NaN in SVD, skip.")
                 corr += tmp
-                print "For length {}, passing site {}, corr = {}".format(l,m,tmp)
+                print("For length {}, passing site {}, corr = {}".format(l,m,tmp))
             if Nconf == 0:
                 corrs.append(np.nan)
             else:

@@ -7,7 +7,7 @@ def save(path, state):
     
 def read(path):
     npzfile = np.load(path)
-    state = [npzfile['arr_%i'%i] for i in xrange(len(npzfile.files))]
+    state = [npzfile['arr_%i'%i] for i in range(len(npzfile.files))]
     npzfile.close()
     return state    
 
@@ -17,7 +17,7 @@ def grep(filename, pattern):
         if pattern in line:   
             found = True; break
     if not found:
-        print "pattern '{}' does not be found in file {}".format(pattern,filename)
+        print("pattern '{}' does not be found in file {}".format(pattern,filename))
     
     f = open(filename)
     titles = re.split('\s+',f.readlines()[line_idx])[1:-2]
